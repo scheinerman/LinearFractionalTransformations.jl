@@ -1,4 +1,4 @@
-# The `LFTs` Module: Linear Fractional Transformations
+# Linear Fractional Transformations
 
 [![Build Status](https://travis-ci.org/scheinerman/LinearFractionalTransformations.jl.svg?branch=master)](https://travis-ci.org/scheinerman/LinearFractionalTransformations.jl)
 
