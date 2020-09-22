@@ -1,4 +1,4 @@
-# Linear Fractional Transformations
+# LinearFractionalTransformations
 
 [![Build Status](https://travis-ci.org/scheinerman/LinearFractionalTransformations.jl.svg?branch=master)](https://travis-ci.org/scheinerman/LinearFractionalTransformations.jl)
 
