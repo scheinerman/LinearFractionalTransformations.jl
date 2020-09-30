@@ -1,8 +1,6 @@
 # LinearFractionalTransformations
 
-[![Build Status](https://travis-ci.org/scheinerman/LinearFractionalTransformations.jl.svg?branch=master)](https://travis-ci.org/scheinerman/LinearFractionalTransformations.jl)
-
-[![Coverage Status](https://coveralls.io/repos/scheinerman/LinearFractionalTransformations.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/scheinerman/LinearFractionalTransformations.jl?branch=master)
+[![Build Status](https://travis-ci.com/scheinerman/LinearFractionalTransformations.jl.svg?branch=master)](https://travis-ci.com/scheinerman/LinearFractionalTransformations.jl)
 
 
 
