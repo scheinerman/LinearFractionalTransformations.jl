@@ -2,7 +2,6 @@ using Test, LinearFractionalTransformations
 
 f = LFT(1, 0, 0, 1)  # identity
 @test f(1 + im) == 1 + im
-@test f[1+im] == 1 + im
 
 
 f = LFT(2, 0, 0, 1)  # f(x) = 2x
