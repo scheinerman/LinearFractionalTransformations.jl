@@ -1,7 +1,5 @@
 # LinearFractionalTransformations
 
-[![Build Status](https://travis-ci.com/scheinerman/LinearFractionalTransformations.jl.svg?branch=master)](https://travis-ci.com/scheinerman/LinearFractionalTransformations.jl)
-
 
 
 This module defines a `LFT` data type to represent a complex *linear
@@ -98,30 +96,28 @@ julia> f.M
 
 Since a `LFT` is a function, the most basic operation we may wish to
 perform is applying that function of a complex number. That's done
-with `f[x]` notation (or with `f(x)`):
+with  `f(x)`:
 
 ```julia
 julia> f = LFT(3,2,1,1)
 LFT( 3.0 + 0.0im , 2.0 + 0.0im , 1.0 + 0.0im , 1.0 + 0.0im )
 
-julia> f[1]
+julia> f(1)
 2.5 + 0.0im
 
-julia> f[0]
+julia> f(0)
 2.0 + 0.0im
 
-julia> f[-1]
+julia> f(-1)
 Inf + Inf*im
 
-julia> f[Inf]
+julia> f(Inf)
 3.0 + 0.0im
 
-julia> f[1+2im]
+julia> f(1+2im)
 2.75 + 0.25im
 ```
 
-**Note**: Staring in Julia 0.4, I plan to replace `f[x]` with `f(x)`
-by defining `call`.
 
 ### Composition and inverse
 
