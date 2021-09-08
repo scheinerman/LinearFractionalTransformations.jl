@@ -147,5 +147,6 @@ function hash(f::LFT, h::UInt64 = UInt64(0))
     return hash(a, hash(b, hash(c, h)))
 end
 
+include("projection.jl")
 
 end # end of module "LFTs"
