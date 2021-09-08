@@ -175,7 +175,9 @@ false
 
 ### The `stereo` function
 
-The function `stereo` maps points in the complex plane to points on a unit three-dimensional sphere centered at `[0,0,0]`. The north pole, `[0,0,1]`, corresponds to complex infinity and the 
+The function `stereo` maps points in the complex plane to points on a unit three-dimensional sphere centered at `[0,0,0]` via [sterographic projection](https://en.wikipedia.org/wiki/Stereographic_projection).
+
+The north pole, `[0,0,1]`, corresponds to complex infinity and the 
 south pole, `[0,0,-1]`, corresponds to `0+0im`.
 
 For a complex number `z`, `stereo(z)` maps `z` to the sphere. This may also be invoked as 
@@ -215,5 +217,27 @@ julia> stereo(stereo(u))
 
 Linear fractional transformations may be considered a mapping of a complex point to the unit sphere, followed by a rotation of the sphere, followed by a projection back to the complex plane. 
 
-Specifically, if `Q` is a real, orthogonal 3-by-3 matrix (so `Q*Q'` is the identity and `det(Q)` equals 1), the function `LFTQ(Q)` returns a linear fractional transformation `F` with the property that for complex `z`, we have `F(z)` equal to `stereo(Q*(stereo(v)))`.
+Specifically, if `Q` is a real, orthogonal 3-by-3 matrix [so `Q*Q'` is the identity and `det(Q)` equals 1, i.e., `Q` is in [SO(3)](https://en.wikipedia.org/wiki/Stereographic_projection)], the function `LFTQ(Q)` returns a linear fractional transformation `F` with the property that for complex `z`, we have `F(z)` equal to `stereo(Q*(stereo(v)))`. Roundoff errors may occur.
+```julia
+julia> using LinearAlgebra, LinearFractionalTransformations
+
+julia> Q,R = qr(randn(3,3));  # create a randon orthogonal matrix
+
+julia> det(Q)
+1.0
+
+julia> Q' == inv(Q)   # verify that Q is in SO(3)
+true
+
+julia> v = 5-im
+5 - 1im
+
+julia> F = LFTQ(Q);
+
+julia> F(v)
+1.0556981607448988 + 1.5029664004078547im
+
+julia> stereo(Q*stereo(v))
+1.055698160744897 + 1.5029664004078531im   #  slightly different from F(v)
+```
 
