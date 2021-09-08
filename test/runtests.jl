@@ -1,5 +1,7 @@
-using Test, LinearFractionalTransformations
+using Test, LinearFractionalTransformations, LinearAlgebra
 
+
+@testset "Bascis" begin
 f = LFT(1, 0, 0, 1)  # identity
 @test f(1 + im) == 1 + im
 
@@ -32,3 +34,23 @@ f = LFT(3 - im, 2 + im, 6)
 @test f(3 - im) == 0
 @test f(2 + im) == 1
 @test isinf(f(6))
+
+end
+
+
+# check out LFTQ 
+@testset "LFTQ" begin
+for k = 1:5
+    Q = [1 0; 0 -1]
+    while det(Q) < 0.5
+        Q, R = qr(randn(3, 3))
+    end
+    F = LFTQ(Q)
+    v = randn() + randn()*im 
+
+    w1 = stereo(Q*stereo(v))
+    w2 = F(v)
+    @test abs(w1-w2) <= 1e-8
+
+end
+end

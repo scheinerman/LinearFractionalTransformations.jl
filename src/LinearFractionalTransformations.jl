@@ -9,16 +9,7 @@ export LFT, isequal, call
 
 const complex_infinity = Inf + Inf * im
 
-"""
-    LFT
-A linear fractional transformation `f(z)=(a*z+b)/(c*z+d)` where `a,b,c,d` are complex numbers.
 
-Constructors:
-* `LFT(a,b,c,d)`: create the function described above.
-* `LFT()`: create the identity function `f(z) = z`. Equivalent to `LFT(1,0,0,1)`.
-* `LFT(a,b,c)`: create the function with `a ↦ 0`, `b ↦ 1`, and `c ↦ ∞`.
-* `LFT(a,aa,b,bb,c,cc)`: creates the function with `a ↦ aa`, `b ↦ bb`, and `c ↦ cc`.
-"""
 struct LFT
     M::Array{Complex{Float64},2}
     function LFT(a, b, c, d)
@@ -34,6 +25,16 @@ struct LFT
     end
 end
 
+"""
+    LFT
+A linear fractional transformation `f(z)=(a*z+b)/(c*z+d)` where `a,b,c,d` are complex numbers.
+
+Constructors:
+* `LFT(a,b,c,d)`: create the function described above.
+* `LFT()`: create the identity function `f(z) = z`. Equivalent to `LFT(1,0,0,1)`.
+* `LFT(a,b,c)`: create the function with `a ↦ 0`, `b ↦ 1`, and `c ↦ ∞`.
+* `LFT(a,aa,b,bb,c,cc)`: creates the function with `a ↦ aa`, `b ↦ bb`, and `c ↦ cc`.
+"""
 function LFT(M::Array)
     return LFT(M[1, 1], M[1, 2], M[2, 1], M[2, 2])
 end

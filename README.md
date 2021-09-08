@@ -169,3 +169,51 @@ true
 julia> f.M == g.M
 false
 ```
+
+
+## Stereographic Projection and Linear Fractional Transformations
+
+### The `stereo` function
+
+The function `stereo` maps points in the complex plane to points on a unit three-dimensional sphere centered at `[0,0,0]`. The north pole, `[0,0,1]`, corresponds to complex infinity and the 
+south pole, `[0,0,-1]`, corresponds to `0+0im`.
+
+For a complex number `z`, `stereo(z)` maps `z` to the sphere. This may also be invoked as 
+`stereo(x,y)`.
+
+For a (unit) three-dimensional vector `v`, `stereo(v)` returns the complex number by projecting 
+`v` to the complex plane. This may also be invoked as `stereo(x,y,z)`. Note that the function does not check if `v` is a unit vector.
+
+Note that `stereo` is its own inverse. 
+That is, for a complex number `v`, we have `stereo(stereo(v))` should equal `v` were it not for 
+possible roundoff errors. Likewise for a unit three-dimensional real vector.
+```julia
+julia> z = 3-4im
+3 - 4im
+
+julia> stereo(stereo(z))
+3.000000000000002 - 4.000000000000003im
+
+julia> u = [1,2,2]/3       # this is a unit vector
+3-element Vector{Float64}:
+ 0.3333333333333333
+ 0.6666666666666666
+ 0.6666666666666666
+
+julia> stereo(stereo(u))
+3-element Vector{Float64}:
+ 0.3333333333333333
+ 0.6666666666666666
+ 0.6666666666666666
+```
+
+
+
+
+### Creating a `LFT` from a unitary matrix: `LFTQ`
+
+
+Linear fractional transformations may be considered a mapping of a complex point to the unit sphere, followed by a rotation of the sphere, followed by a projection back to the complex plane. 
+
+Specifically, if `Q` is a real, orthogonal 3-by-3 matrix (so `Q*Q'` is the identity and `det(Q)` equals 1), the function `LFTQ(Q)` returns a linear fractional transformation `F` with the property that for complex `z`, we have `F(z)` equal to `stereo(Q*(stereo(v)))`.
+
