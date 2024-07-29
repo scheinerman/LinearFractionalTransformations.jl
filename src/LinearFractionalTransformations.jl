@@ -1,6 +1,7 @@
 # Linear fractional transformation "LFT"
 
 module LinearFractionalTransformations
+using StaticArrays
 
 import Base.inv, Base.isequal, Base.show, Base.hash
 import Base.==, Base.*, Base.getindex
@@ -10,8 +11,9 @@ export LFT, isequal, call
 const complex_infinity = Inf + Inf * im
 
 
-struct LFT{T} 
-    M::Array{T,2}
+struct LFT{T}
+    # M::Array{T,2}
+    M::SMatrix{2,2,T,4}
     function LFT(a, b, c, d)
         if isinf(a) || isinf(b) || isinf(c) || isinf(d)
             error("Arguments must be finite: " * string((a, b, c, d)))
@@ -20,9 +22,9 @@ struct LFT{T}
         if a * d - b * c == 0
             error("Singularity detected: " * string((a, b, c, d)))
         end
-        a,b,c,d = promote(a,b,c,d)
+        a, b, c, d = promote(a, b, c, d)
         T = typeof(a)
-        new{T}([a b; c d])
+        new{T}(SMatrix{2,2,T,4}(a, c, b, d))
     end
 end
 
@@ -36,7 +38,7 @@ Constructors:
 * `LFT(a,b,c)`: create the function with `a ↦ 0`, `b ↦ 1`, and `c ↦ ∞`.
 * `LFT(a,aa,b,bb,c,cc)` or `LFT(a=>aa,b=>bb,c=>cc)`: creates the function with `a ↦ aa`, `b ↦ bb`, and `c ↦ cc`.
 """
-function LFT(M::Array)
+function LFT(M::AbstractArray)
     return LFT(M[1, 1], M[1, 2], M[2, 1], M[2, 2])
 end
 

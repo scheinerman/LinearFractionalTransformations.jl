@@ -1,5 +1,33 @@
 # LinearFractionalTransformations
 
+## New in version 0.2
+
+There are two changes to the internals of `LinearFractionalTransformation`s. 
+
+* First, the 2-by-2 matrix holding the four coefficients is now an `SMatrix`
+from the `StaticArrays` package. This is more efficient than using a `Matrix`.
+* Second, the coefficients are no longer restricted to be of type 
+`Complex{Float64}`. This means an `LFT` can be constructed using types 
+such as `Int` or `Complex{Rational{Int}}`, so exact arithmetic is feasible. 
+
+```
+julia> f = LFT( 2=>im, 3=>0, 1=>-4+im)
+LFT( -1 - 4im , 3 + 12im , 4 + 1im , -4 - 3im )
+
+julia> typeof(f)
+LFT{Complex{Int64}}
+
+julia> f(2)     # result is floating point b/c there is a division
+0.0 + 1.0im
+
+julia> f(2//1)  # this is exact
+0//1 + 1//1*im
+```
+
+Old code should not need to be modified. 
+
+
+## Overview
 
 
 This module defines a `LFT` data type to represent a complex *linear
@@ -16,7 +44,7 @@ These are also known as *Möbius transformations*.
 
 The basic constructor takes four values:
 
-```julia
+```
 julia> using LinearFractionalTransformations
 
 julia> julia> f = LFT(1,2,3,4)
@@ -26,7 +54,7 @@ LFT( 1.0 + 0.0im , 2.0 + 0.0im , 3.0 + 0.0im , 4.0 + 0.0im )
 Notice that the `LFT` is represented by a 2-by-2 complex matrix.
 A `LFT` can also be defined by specifying a matrix.
 
-```julia
+```
 julia> A = [1 2; 3 4];
 
 julia> g = LFT(A)
@@ -35,7 +63,7 @@ LFT( 1.0 + 0.0im , 2.0 + 0.0im , 3.0 + 0.0im , 4.0 + 0.0im )
 
 The identity `LFT` is constructed by `LFT()`:
 
-```julia
+```
 julia> LFT()
 LFT( 1.0 + 0.0im , 0.0 + 0.0im , 0.0 + 0.0im , 1.0 + 0.0im )
 ```
@@ -43,7 +71,7 @@ LFT( 1.0 + 0.0im , 0.0 + 0.0im , 0.0 + 0.0im , 1.0 + 0.0im )
 Given (complex) numbers `a,b,c` (including `Inf`) we can construct
 a `LFT` that maps `a` to 0, `b` to 1, and `c` to infinity.
 
-```julia
+```
 julia> f = LFT(2,5,-1)
 LFT( 6.0 + 0.0im , -12.0 + 0.0im , 3.0 + 0.0im , 3.0 + 0.0im )
 
@@ -61,7 +89,7 @@ Finally, we provide a constructor for mapping a given triple of values
 `(a,b,c)` to another triple `(aa,bb,cc)`. The syntax is
 `LFT(a,aa,b,bb,c,cc)` or `LFT(a=>aa, b=>bb, c=>cc)`. Here's an example:
 
-```julia
+```
 julia> f = LFT(1,2+im, 3,Inf, 4,1-im)
 LFT( 5.0 + 1.0im , -17.0 - 7.0im , 3.0 + 0.0im , -9.0 + 0.0im )
 
@@ -80,7 +108,7 @@ julia> f[4]
 
 The matrix representing a `LFT` object is held in a field named `:M`.
 
-```julia
+```
 julia> f = LFT(1,2,3)
 LFT( -1.0 + 0.0im , 1.0 + 0.0im , 1.0 + 0.0im , -3.0 + 0.0im )
 
@@ -98,7 +126,7 @@ Since a `LFT` is a function, the most basic operation we may wish to
 perform is applying that function of a complex number. That's done
 with  `f(x)`:
 
-```julia
+```
 julia> f = LFT(3,2,1,1)
 LFT( 3.0 + 0.0im , 2.0 + 0.0im , 1.0 + 0.0im , 1.0 + 0.0im )
 
@@ -123,7 +151,7 @@ julia> f(1+2im)
 
 The `*` operation is used for function composition.
 
-```julia
+```
 julia> f = LFT(3,2,1,1);
 
 julia> g = LFT(0,1,-1,2);
@@ -138,7 +166,7 @@ LFT( 1.0 + 0.0im , 1.0 + 0.0im , -1.0 + 0.0im , 0.0 + 0.0im )
 
 The inverse of a `LFT` is computed with `inv`:
 
-```julia
+```
 julia> f = LFT(1,2,3,4);
 
 julia> g = inv(f)
@@ -158,7 +186,7 @@ equal. Note that there is no unique matrix representation for a `LFT`
 object and we might have that `f` and `g` are equal, but `f.M` and
 `g.M` are different.
 
-```julia
+```
 julia> f = LFT(1,2,3,4);
 
 julia> g = LFT(-2,-4,-6,-8);
@@ -189,7 +217,7 @@ For a (unit) three-dimensional vector `v`, `stereo(v)` returns the complex numbe
 Note that `stereo` is its own inverse. 
 That is, for a complex number `v`, we have `stereo(stereo(v))` should equal `v` were it not for 
 possible roundoff errors. Likewise for a unit three-dimensional real vector.
-```julia
+```
 julia> z = 3-4im
 3 - 4im
 
@@ -218,7 +246,7 @@ julia> stereo(stereo(u))
 Linear fractional transformations may be considered a mapping of a complex point to the unit sphere, followed by a rotation of the sphere, followed by a projection back to the complex plane. 
 
 Specifically, if `Q` is a real, orthogonal 3-by-3 matrix [so `Q*Q'` is the identity and `det(Q)` equals 1, i.e., `Q` is in [SO(3)](https://en.wikipedia.org/wiki/Stereographic_projection)], the function `LFTQ(Q)` returns a linear fractional transformation `F` with the property that for complex `z`, we have `F(z)` equal to `stereo(Q*(stereo(v)))`. Roundoff errors may occur.
-```julia
+```
 julia> using LinearAlgebra, LinearFractionalTransformations
 
 julia> Q,R = qr(randn(3,3));  # create a randon orthogonal matrix
