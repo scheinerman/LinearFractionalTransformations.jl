@@ -35,6 +35,11 @@ using Test, LinearFractionalTransformations, LinearAlgebra
     @test f(2 + im) == 1
     @test isinf(f(6))
 
+    f = LFT(3 => im, 0 => -5, im => -2)
+    @test f(3) == im
+    @test f(0) == -5
+    @test f(im) == -2
+
 end
 
 
@@ -45,7 +50,7 @@ end
         while det(Q) < 0.5
             Q, R = qr(randn(3, 3))
         end
-        F = LFTQ(Q)
+        F = LFTQ(Matrix(Q))
         v = randn() + randn() * im
 
         w1 = stereo(Q * stereo(v))

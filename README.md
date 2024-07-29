@@ -59,7 +59,7 @@ Inf + Inf*im
 
 Finally, we provide a constructor for mapping a given triple of values
 `(a,b,c)` to another triple `(aa,bb,cc)`. The syntax is
-`LFT(a,aa,b,bb,c,cc)`. Here's an example:
+`LFT(a,aa,b,bb,c,cc)` or `LFT(a=>aa, b=>bb, c=>cc)`. Here's an example:
 
 ```julia
 julia> f = LFT(1,2+im, 3,Inf, 4,1-im)

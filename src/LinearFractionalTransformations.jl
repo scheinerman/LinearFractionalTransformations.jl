@@ -33,11 +33,20 @@ Constructors:
 * `LFT(a,b,c,d)`: create the function described above.
 * `LFT()`: create the identity function `f(z) = z`. Equivalent to `LFT(1,0,0,1)`.
 * `LFT(a,b,c)`: create the function with `a ↦ 0`, `b ↦ 1`, and `c ↦ ∞`.
-* `LFT(a,aa,b,bb,c,cc)`: creates the function with `a ↦ aa`, `b ↦ bb`, and `c ↦ cc`.
+* `LFT(a,aa,b,bb,c,cc)` or `LFT(a=>aa,b=>bb,c=>cc)`: creates the function with `a ↦ aa`, `b ↦ bb`, and `c ↦ cc`.
 """
 function LFT(M::Array)
     return LFT(M[1, 1], M[1, 2], M[2, 1], M[2, 2])
 end
+
+
+function LFT(aaa::Pair, bbb::Pair, ccc::Pair)
+    a, aa = aaa
+    b, bb = bbb
+    c, cc = ccc
+    return LFT(a, aa, b, bb, c, cc)
+end
+
 
 function LFT()
     return LFT(1, 0, 0, 1)
