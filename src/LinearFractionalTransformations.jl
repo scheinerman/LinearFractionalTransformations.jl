@@ -10,8 +10,8 @@ export LFT, isequal, call
 const complex_infinity = Inf + Inf * im
 
 
-struct LFT
-    M::Array{Complex{Float64},2}
+struct LFT{T} 
+    M::Array{T,2}
     function LFT(a, b, c, d)
         if isinf(a) || isinf(b) || isinf(c) || isinf(d)
             error("Arguments must be finite: " * string((a, b, c, d)))
@@ -20,8 +20,9 @@ struct LFT
         if a * d - b * c == 0
             error("Singularity detected: " * string((a, b, c, d)))
         end
-
-        new([a b; c d])
+        a,b,c,d = promote(a,b,c,d)
+        T = typeof(a)
+        new{T}([a b; c d])
     end
 end
 
@@ -91,7 +92,7 @@ end
 # These need to be rewritten
 
 function isequal(f::LFT, g::LFT)
-    return f[0] == g[0] && f[1] == g[1] && f[Inf] == g[Inf]
+    return f[0//1] == g[0//1] && f[1//1] == g[1//1] && f[im//1] == g[im//1]
     # h = f * inv(g)
     # I = h.M
     # return I[1,1]==I[2,2] && I[1,2]==I[2,1]==0
@@ -121,7 +122,7 @@ function getindex(A::LFT, x::Number)
         end
         return a / b
     end
-    w = A.M * [x + 0im; 1.0 + 0im]
+    w = A.M * [x + 0im; 1 + 0im]
     if w[2] == 0
         return complex_infinity
     end
