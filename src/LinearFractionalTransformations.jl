@@ -3,9 +3,14 @@
 module LinearFractionalTransformations
 using StaticArrays
 
-import Base.inv, Base.isequal, Base.show, Base.hash
-import Base.==, Base.*, Base.getindex
-export LFT, isequal, call
+# import Base.inv, Base.isequal, Base.show, Base.hash
+# import Base.==, Base.*, Base.getindex
+
+import Base: inv, show, hash, ==, *, isone
+import Base: getindex
+
+
+export LFT, call
 
 
 const complex_infinity = Inf + Inf * im
@@ -93,17 +98,24 @@ end
 
 # These need to be rewritten
 
-function isequal(f::LFT, g::LFT)
-    return f[0//1] == g[0//1] && f[1//1] == g[1//1] && f[im//1] == g[im//1]
-    # h = f * inv(g)
-    # I = h.M
-    # return I[1,1]==I[2,2] && I[1,2]==I[2,1]==0
+"""
+    isone(f::LFT)::Bool
+
+Return `true` if `f` is the identity `LFT` and `false` otherwise.
+"""
+function isone(f::LFT)::Bool
+    M = f.M
+    return iszero(M[1, 2]) && iszero(M[2, 1]) && (M[1, 1] == M[2, 2])
 end
 
-==(f::LFT, g::LFT) = isequal(f, g)
+
+function ==(f::LFT, g::LFT)::Bool
+    return isone(f * inv(g))
+end
+
 
 # Inverse transformation
-function inv(L::LFT)
+function inv(L::LFT{T})::LFT{T} where {T}
     a = L.M[1, 1]
     b = L.M[1, 2]
     c = L.M[2, 1]
@@ -115,7 +127,7 @@ end
 *(A::LFT, B::LFT) = LFT(A.M * B.M)
 
 # Function application
-function getindex(A::LFT, x::Number)
+function (A::LFT)(x::Number)
     if isinf(x)
         a = A.M[1, 1]
         b = A.M[2, 1]
@@ -124,7 +136,8 @@ function getindex(A::LFT, x::Number)
         end
         return a / b
     end
-    w = A.M * [x + 0im; 1 + 0im]
+    # w = A.M * [x + 0im; 1 + 0im]
+    w = A.M * [x; 1]
     if w[2] == 0
         return complex_infinity
     end
@@ -132,8 +145,6 @@ function getindex(A::LFT, x::Number)
 end
 
 # call(A::LFT, x::Number) = A[x]
-
-(A::LFT)(x::Number) = A[x]
 
 function show(io::IO, L::LFT)
     print(
@@ -153,12 +164,15 @@ end
 
 function hash(f::LFT, h::UInt64 = UInt64(0))
     z = 0.0 + 0.0 * im # kludge to make -0.0 and -0.0im into +versions
-    a = f[0] + z
-    b = f[1] + z
-    c = f[Inf] + z
+    a = f(0) + z
+    b = f(1) + z
+    c = f(Inf) + z
     return hash(a, hash(b, hash(c, h)))
 end
 
 include("projection.jl")
+include("deprecated.jl")
+
+
 
 end # end of module "LFTs"

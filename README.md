@@ -1,14 +1,15 @@
 # LinearFractionalTransformations
 
-## New in version 0.2
+## New in Version 0.2
 
-There are two changes to the internals of `LinearFractionalTransformation`s. 
+These are the changes to `LinearFractionalTransformations`. 
 
 * First, the 2-by-2 matrix holding the four coefficients is now an `SMatrix`
 from the `StaticArrays` package. This is more efficient than using a `Matrix`.
 * Second, the coefficients are no longer restricted to be of type 
 `Complex{Float64}`. This means an `LFT` can be constructed using types 
 such as `Int` or `Complex{Rational{Int}}`, so exact arithmetic is feasible. 
+* Third, to apply a linear fractional transformation `f` to a number `x`, use `f(x)`. The old syntax `f[x]` is deprecated and slated to be removed in a future release.
 
 ```
 julia> f = LFT( 2=>im, 3=>0, 1=>-4+im)
@@ -24,7 +25,6 @@ julia> f(2//1)  # this is exact
 0//1 + 1//1*im
 ```
 
-Old code should not need to be modified. 
 
 
 ## Overview
