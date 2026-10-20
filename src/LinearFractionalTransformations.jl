@@ -14,14 +14,14 @@ include("infinity.jl")
 
 
 struct LFT{T}
-    # M::Array{T,2}
     M::SMatrix{2,2,T,4}
     function LFT(a, b, c, d)
-        if isinf(a) || isinf(b) || isinf(c) || isinf(d)
+        if is_infinite_point(a) || is_infinite_point(b) ||
+           is_infinite_point(c) || is_infinite_point(d)
             error("Arguments must be finite: " * string((a, b, c, d)))
         end
 
-        if a * d - b * c == 0
+        if iszero(a * d - b * c)
             error("Singularity detected: " * string((a, b, c, d)))
         end
         a, b, c, d = promote(a, b, c, d)
@@ -58,20 +58,20 @@ function LFT()
 end
 
 # a --> 0, b-->1, and c--> oo
-function LFT(a::Number, b::Number, c::Number)
+function LFT(a, b, c)
     if a == b || b == c || a == c
         error("Three arguments must be distinct: " * string((a, b, c)))
     end
 
-    if isinf(a)
+    if is_infinite_point(a)
         return LFT(0, b - c, 1, -c)
     end
 
-    if isinf(b)
+    if is_infinite_point(b)
         return LFT(1, -a, 1, -c)
     end
 
-    if isinf(c)
+    if is_infinite_point(c)
         return LFT(1, -a, 0, b - a)
     end
 
@@ -84,7 +84,7 @@ function LFT(a::Number, b::Number, c::Number)
 end
 
 # a-->aa, b-->bb, c-->cc
-function LFT(a::Number, aa::Number, b::Number, bb::Number, c::Number, cc::Number)
+function LFT(a, aa, b, bb, c, cc)
     f = LFT(a, b, c)
     g = LFT(aa, bb, cc)
     return inv(g) * f
