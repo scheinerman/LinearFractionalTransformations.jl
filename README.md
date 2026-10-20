@@ -68,7 +68,8 @@ julia> LFT()
 LFT( 1.0 + 0.0im , 0.0 + 0.0im , 0.0 + 0.0im , 1.0 + 0.0im )
 ```
 
-Given (complex) numbers `a,b,c` (including `Inf`) we can construct
+Given (complex) numbers `a,b,c` (including `Inf` or `∞`, see
+[Other coefficient fields](#other-coefficient-fields)) we can construct
 a `LFT` that maps `a` to 0, `b` to 1, and `c` to infinity.
 
 ```
@@ -117,6 +118,65 @@ julia> f.M
  -1.0+0.0im   1.0+0.0im
   1.0+0.0im  -3.0+0.0im
 ```
+
+## Other coefficient fields
+
+The coefficients may come from any field, not only `Complex{Float64}`. The
+constructors therefore do not require `Number` arguments, and a pole — a point
+`z` where `c*z + d == 0` — evaluates to the coefficient field's own infinity.
+
+Over ℚ, for example, a pole is `1//0`, and the value of `f(z)` stays exact:
+
+```
+julia> f = LFT(0//1, 1//1, 1//1, 0//1)    # z ↦ 1/z over ℚ
+LFT( 0 , 1 , 1 , 0 )
+
+julia> f(2//1) == 1//2
+true
+
+julia> f(0//1) == 1//0
+true
+```
+
+Over the floating-point types a pole is `Inf` (or `Inf32` for `Float32`), and
+over `Complex` it is `Inf + 0im`.
+
+Some fields have no infinity to name: an element of a number field, such as those
+of Nemo, has neither `isinf` nor an infinite value. A pole then returns the
+exported sentinel `∞`, an instance of `RiemannInfinity`:
+
+```
+julia> ∞
+∞
+
+julia> isinf(∞)
+true
+```
+
+`∞` may be used wherever `Inf` is. The three-point constructor accepts it as one
+of the points:
+
+```
+julia> f = LFT(∞, 0.0, 1.0);    # ∞ ↦ 0, 0 ↦ 1, 1 ↦ ∞
+
+julia> f(∞)
+0.0
+
+julia> f(1.0)
+Inf
+```
+
+It is not a coefficient, though — the four-argument constructor rejects it, as it
+rejects `Inf`:
+
+```
+julia> LFT(∞, 0, 0, 1)
+ERROR: Arguments must be finite: (∞, 0, 0, 1)
+```
+
+If you work with a field type of your own that can name an infinity, extend
+`LinearFractionalTransformations.infinity` for one of its elements, and a pole
+returns that value instead of `∞`.
 
 ## Operations
 
