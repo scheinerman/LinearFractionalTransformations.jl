@@ -3,17 +3,14 @@
 module LinearFractionalTransformations
 using StaticArrays
 
-# import Base.inv, Base.isequal, Base.show, Base.hash
-# import Base.==, Base.*, Base.getindex
-
 import Base: inv, show, hash, ==, *, isone
 import Base: getindex
 
 
-export LFT, call
+export LFT, call, RiemannInfinity, ∞
 
 
-const complex_infinity = Inf + Inf * im
+include("infinity.jl")
 
 
 struct LFT{T}
