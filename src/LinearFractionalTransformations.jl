@@ -124,21 +124,13 @@ end
 *(A::LFT, B::LFT) = LFT(A.M * B.M)
 
 # Function application
-function (A::LFT)(x::Number)
-    if isinf(x)
-        a = A.M[1, 1]
-        b = A.M[2, 1]
-        if b == 0
-            return complex_infinity
-        end
-        return a / b
-    end
-    # w = A.M * [x + 0im; 1 + 0im]
-    w = A.M * [x; 1]
-    if w[2] == 0
-        return complex_infinity
-    end
-    return w[1] / w[2]
+function (A::LFT)(x)
+    a = A.M[1, 1]
+    b = A.M[1, 2]
+    c = A.M[2, 1]
+    d = A.M[2, 2]
+    numer, denom = is_infinite_point(x) ? (a, c) : (a * x + b, c * x + d)
+    return iszero(denom) ? infinity(denom) : numer * inv(denom)
 end
 
 # call(A::LFT, x::Number) = A[x]
@@ -160,11 +152,15 @@ end
 
 
 function hash(f::LFT, h::UInt64 = UInt64(0))
-    z = 0.0 + 0.0 * im # kludge to make -0.0 and -0.0im into +versions
-    a = f(0) + z
-    b = f(1) + z
-    c = f(Inf) + z
-    return hash(a, hash(b, hash(c, h)))
+    a = f.M[1, 1]
+    b = f.M[1, 2]
+    c = f.M[2, 1]
+    d = f.M[2, 2]
+    # The images at 0, 1 and ∞. `+ zero(x)` maps -0.0 to 0.0, which Julia hashes
+    # apart, while a pole's infinity is returned untouched — it may be a non-numeric
+    # ring (a Nemo field's), so it must not be added to anything.
+    _image(x, y) = iszero(y) ? infinity(x) : (x * inv(y) + zero(x))
+    return hash(_image(b, d), hash(_image(a + b, c + d), hash(_image(a, c), h)))
 end
 
 include("projection.jl")
