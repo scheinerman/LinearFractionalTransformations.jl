@@ -3,28 +3,25 @@
 module LinearFractionalTransformations
 using StaticArrays
 
-# import Base.inv, Base.isequal, Base.show, Base.hash
-# import Base.==, Base.*, Base.getindex
-
 import Base: inv, show, hash, ==, *, isone
 import Base: getindex
 
 
-export LFT, call
+export LFT, call, RiemannInfinity, ∞
 
 
-const complex_infinity = Inf + Inf * im
+include("infinity.jl")
 
 
 struct LFT{T}
-    # M::Array{T,2}
     M::SMatrix{2,2,T,4}
     function LFT(a, b, c, d)
-        if isinf(a) || isinf(b) || isinf(c) || isinf(d)
+        if is_infinite_point(a) || is_infinite_point(b) ||
+           is_infinite_point(c) || is_infinite_point(d)
             error("Arguments must be finite: " * string((a, b, c, d)))
         end
 
-        if a * d - b * c == 0
+        if iszero(a * d - b * c)
             error("Singularity detected: " * string((a, b, c, d)))
         end
         a, b, c, d = promote(a, b, c, d)
@@ -61,20 +58,20 @@ function LFT()
 end
 
 # a --> 0, b-->1, and c--> oo
-function LFT(a::Number, b::Number, c::Number)
+function LFT(a, b, c)
     if a == b || b == c || a == c
         error("Three arguments must be distinct: " * string((a, b, c)))
     end
 
-    if isinf(a)
+    if is_infinite_point(a)
         return LFT(0, b - c, 1, -c)
     end
 
-    if isinf(b)
+    if is_infinite_point(b)
         return LFT(1, -a, 1, -c)
     end
 
-    if isinf(c)
+    if is_infinite_point(c)
         return LFT(1, -a, 0, b - a)
     end
 
@@ -87,7 +84,7 @@ function LFT(a::Number, b::Number, c::Number)
 end
 
 # a-->aa, b-->bb, c-->cc
-function LFT(a::Number, aa::Number, b::Number, bb::Number, c::Number, cc::Number)
+function LFT(a, aa, b, bb, c, cc)
     f = LFT(a, b, c)
     g = LFT(aa, bb, cc)
     return inv(g) * f
@@ -127,21 +124,13 @@ end
 *(A::LFT, B::LFT) = LFT(A.M * B.M)
 
 # Function application
-function (A::LFT)(x::Number)
-    if isinf(x)
-        a = A.M[1, 1]
-        b = A.M[2, 1]
-        if b == 0
-            return complex_infinity
-        end
-        return a / b
-    end
-    # w = A.M * [x + 0im; 1 + 0im]
-    w = A.M * [x; 1]
-    if w[2] == 0
-        return complex_infinity
-    end
-    return w[1] / w[2]
+function (A::LFT)(x)
+    a = A.M[1, 1]
+    b = A.M[1, 2]
+    c = A.M[2, 1]
+    d = A.M[2, 2]
+    numer, denom = is_infinite_point(x) ? (a, c) : (a * x + b, c * x + d)
+    return iszero(denom) ? infinity(denom) : numer * inv(denom)
 end
 
 # call(A::LFT, x::Number) = A[x]
@@ -163,11 +152,15 @@ end
 
 
 function hash(f::LFT, h::UInt64 = UInt64(0))
-    z = 0.0 + 0.0 * im # kludge to make -0.0 and -0.0im into +versions
-    a = f(0) + z
-    b = f(1) + z
-    c = f(Inf) + z
-    return hash(a, hash(b, hash(c, h)))
+    a = f.M[1, 1]
+    b = f.M[1, 2]
+    c = f.M[2, 1]
+    d = f.M[2, 2]
+    # The images at 0, 1 and ∞. `+ zero(x)` maps -0.0 to 0.0, which Julia hashes
+    # apart, while a pole's infinity is returned untouched — it may be a non-numeric
+    # ring (a Nemo field's), so it must not be added to anything.
+    _image(x, y) = iszero(y) ? infinity(x) : (x * inv(y) + zero(x))
+    return hash(_image(b, d), hash(_image(a + b, c + d), hash(_image(a, c), h)))
 end
 
 include("projection.jl")
