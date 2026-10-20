@@ -19,7 +19,8 @@
 
 
 """
-    stereo 
+    stereo(X::Real, Y::Real)::Vector{Float64}
+
 Stereographic projection between the complex plane and a three-dimensional unit sphere 
 centered at `[0,0,0]`. The north pole, `[0,0,1]`, corresponds to complex infinity and the 
 south pole, `[0,0,-1]`, corresponds to `0+0im`.
@@ -64,7 +65,8 @@ end
 
 
 """
-    LFTQ
+    LFTQ(Q::AbstractMatrix)::LFT
+    
 Create a linear fractional transformation from a 3-by-3 unitary matrix. 
 
 Given a 3-by-3 real matrix `Q` with `Q*Q'` equal to the identity and `det(Q)` equal to `1`,

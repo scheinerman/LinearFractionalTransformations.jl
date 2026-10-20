@@ -1,31 +1,9 @@
 # LinearFractionalTransformations
 
-## New in Version 0.2
+## New in Version 0.3
 
-These are the changes to `LinearFractionalTransformations`. 
-
-* First, the 2-by-2 matrix holding the four coefficients is now an `SMatrix`
-from the `StaticArrays` package. This is more efficient than using a `Matrix`.
-* Second, the coefficients are no longer restricted to be of type 
-`Complex{Float64}`. This means an `LFT` can be constructed using types 
-such as `Int` or `Complex{Rational{Int}}`, so exact arithmetic is feasible. 
-* Third, to apply a linear fractional transformation `f` to a number `x`, use `f(x)`. The old syntax `f[x]` is deprecated and slated to be removed in a future release.
-
-```
-julia> f = LFT( 2=>im, 3=>0, 1=>-4+im)
-LFT( -1 - 4im , 3 + 12im , 4 + 1im , -4 - 3im )
-
-julia> typeof(f)
-LFT{Complex{Int64}}
-
-julia> f(2)     # result is floating point b/c there is a division
-0.0 + 1.0im
-
-julia> f(2//1)  # this is exact
-0//1 + 1//1*im
-```
-
-
+The coefficients may come from any field, not only Complex{Float64}. 
+See *Other coefficient fields* below. 
 
 ## Overview
 

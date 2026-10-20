@@ -31,7 +31,8 @@ struct LFT{T}
 end
 
 """
-    LFT
+    LFT(M::AbstractArray)
+    
 A linear fractional transformation `f(z)=(a*z+b)/(c*z+d)` where `a,b,c,d` are complex numbers.
 
 Constructors:
