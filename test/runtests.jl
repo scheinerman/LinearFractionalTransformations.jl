@@ -68,3 +68,89 @@ end
 
     end
 end
+
+
+# A field element with no `isinf` — the shape of a Nemo number-field element.
+struct ToyExact
+    x::Rational{Int}
+end
+Base.:+(u::ToyExact, v::ToyExact) = ToyExact(u.x + v.x)
+Base.:-(u::ToyExact, v::ToyExact) = ToyExact(u.x - v.x)
+Base.:-(u::ToyExact) = ToyExact(-u.x)
+Base.:*(u::ToyExact, v::ToyExact) = ToyExact(u.x * v.x)
+Base.inv(u::ToyExact) = ToyExact(inv(u.x))
+Base.:(==)(u::ToyExact, v::ToyExact) = u.x == v.x
+Base.hash(u::ToyExact, h::UInt) = hash(u.x, h)
+Base.iszero(u::ToyExact) = iszero(u.x)
+Base.zero(::Type{ToyExact}) = ToyExact(0 // 1)
+Base.one(::Type{ToyExact}) = ToyExact(1 // 1)
+Base.zero(u::ToyExact) = ToyExact(0 // 1)
+
+
+@testset "exact fields and infinity" begin
+    @testset "the field's own infinity" begin
+        f = LFT(0 // 1, 1 // 1, 1 // 1, 0 // 1)          # z -> 1/z over ℚ
+        @test f(0 // 1) === 1 // 0
+        @test f(1 // 1) === 1 // 1
+        @test f(2 // 1) === 1 // 2
+        @test map(f, [0 // 1, 2 // 1]) isa Vector{Rational{Int}}
+
+        c = Complex{Rational{Int}}
+        g = LFT(c(0), c(1), c(1), c(0))
+        @test g(c(0)) === complex(1 // 0)
+        @test g(c(1)) === c(1)
+        @test map(g, [c(0), c(1)]) isa Vector{Complex{Rational{Int}}}
+        @test [g(t) for t in (c(0), c(1))] isa Vector{Complex{Rational{Int}}}
+
+        @test LFT(0.0, 1.0, 1.0, 0.0)(0.0) === Inf
+        @test LFT(0.0f0, 1.0f0, 1.0f0, 0.0f0)(0.0f0) === Inf32
+        @test LFT(0.0 + 0.0im, 1.0 + 0.0im, 1.0 + 0.0im, 0.0 + 0.0im)(0.0 + 0.0im) ===
+              complex(Inf)
+    end
+
+    @testset "the sentinel" begin
+        LFTs = LinearFractionalTransformations
+
+        @test ∞ isa RiemannInfinity
+        @test LFTs.∞ === RiemannInfinity()
+        @test sprint(show, ∞) == "∞"
+        @test isinf(∞)
+        @test LFTs.is_infinite_point(∞)
+        @test LFTs.is_infinite_point(-Inf)
+        @test LFTs.is_infinite_point(complex(0, Inf))
+        @test !LFTs.is_infinite_point(1 // 2)
+
+        # ∞ is accepted wherever Inf is, but never as a coefficient
+        h = LFT(∞, 1.0 + 0im, 2.0 + 0im)
+        @test h(∞) == 0
+        @test h(1.0 + 0im) == 1
+        @test isinf(h(2.0 + 0im))
+        @test_throws ErrorException LFT(∞, 0, 0, 1)
+    end
+
+    @testset "a field with no isinf" begin
+        at(x) = ToyExact(x)
+        m = LFT(at(1), at(2), at(3), at(4))
+        @test m(at(0)) == at(1 // 2)
+        @test m(∞) == at(1 // 3)
+
+        poled = LFT(at(0), at(1), at(1), at(0))          # z -> 1/z
+        @test poled(at(2)) == at(1 // 2)
+        @test poled(at(0)) === ∞                         # the fallback
+        @test LinearFractionalTransformations.infinity(at(0)) === ∞
+        @test map(poled, [at(0), at(2)]) isa
+              Vector{Union{ToyExact, RiemannInfinity}}
+    end
+
+    @testset "hash" begin
+        @test hash(LFT(1.0, 0.0, 0.0, 1.0)) isa UInt
+        @test hash(LFT(0.0, 1.0, 1.0, 0.0)) ==
+              hash(LFT(0 // 1, 1 // 1, 1 // 1, 0 // 1))
+
+        at(x) = ToyExact(x)
+        poled = LFT(at(0), at(1), at(1), at(0))
+        scaled = LFT(at(0), at(2), at(2), at(0))
+        @test hash(poled) isa UInt
+        @test hash(poled) == hash(scaled)
+    end
+end
