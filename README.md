@@ -8,42 +8,54 @@ See *Other coefficient fields* below.
 ## Overview
 
 
-This module defines a `LFT` data type to represent a complex *linear
-fractional transformation*. This is a function on the extended
-complex numbers (include complex infinity) defined by
+This module defines an `LFT` data type to represent a *linear fractional transformation*,
+a function on the extended points of a field defined by
 ```
 f(z) = (a*z + b) / (c*z + d)
 ```
-where `a,b,c,d` are (finite) complex numbers and `a*d-b*c != 0`.
+where `a,b,c,d` are finite elements of a field and `a*d-b*c != 0`.
 
 These are also known as *Möbius transformations*.
 
 ## Constructors
 
-The basic constructor takes four values:
+The basic constructor takes four coefficients:
 
 ```
 julia> using LinearFractionalTransformations
 
-julia> julia> f = LFT(1,2,3,4)
-LFT( 1.0 + 0.0im , 2.0 + 0.0im , 3.0 + 0.0im , 4.0 + 0.0im )
+julia> f = LFT(1,2,3,4)
+LFT( 1 , 2 , 3 , 4 )
 ```
 
-Notice that the `LFT` is represented by a 2-by-2 complex matrix.
-A `LFT` can also be defined by specifying a matrix.
+The coefficients are stored in four fields and promoted to a common type. `Matrix(f)`
+gives the 2-by-2 coefficient matrix:
+
+```
+julia> Matrix(f)
+2×2 Matrix{Int64}:
+ 1  2
+ 3  4
+```
+
+An `LFT` can also be defined by specifying a matrix:
 
 ```
 julia> A = [1 2; 3 4];
 
 julia> g = LFT(A)
-LFT( 1.0 + 0.0im , 2.0 + 0.0im , 3.0 + 0.0im , 4.0 + 0.0im )
+LFT( 1 , 2 , 3 , 4 )
 ```
 
-The identity `LFT` is constructed by `LFT()`:
+The identity `LFT` is constructed by `LFT()`, or for a given coefficient type by
+`LFT(T)`:
 
 ```
 julia> LFT()
-LFT( 1.0 + 0.0im , 0.0 + 0.0im , 0.0 + 0.0im , 1.0 + 0.0im )
+LFT( 1 , 0 , 0 , 1 )
+
+julia> LFT(ComplexF64)
+LFT( 1.0+0.0im , 0.0+0.0im , 0.0+0.0im , 1.0+0.0im )
 ```
 
 Given (complex) numbers `a,b,c` (including `Inf` or `∞`, see
@@ -52,16 +64,16 @@ a `LFT` that maps `a` to 0, `b` to 1, and `c` to infinity.
 
 ```
 julia> f = LFT(2,5,-1)
-LFT( 6.0 + 0.0im , -12.0 + 0.0im , 3.0 + 0.0im , 3.0 + 0.0im )
+LFT( 6 , -12 , 3 , 3 )
 
 julia> f[2]
-0.0 + 0.0im
+0.0
 
 julia> f[5]
-1.0 + 0.0im
+1.0
 
 julia> f[-1]
-Inf + Inf*im
+Inf
 ```
 
 Finally, we provide a constructor for mapping a given triple of values
@@ -70,13 +82,13 @@ Finally, we provide a constructor for mapping a given triple of values
 
 ```
 julia> f = LFT(1,2+im, 3,Inf, 4,1-im)
-LFT( 5.0 + 1.0im , -17.0 - 7.0im , 3.0 + 0.0im , -9.0 + 0.0im )
+LFT( 5+1im , -17-7im , 3+0im , -9+0im )
 
 julia> f[1]
 2.0 + 1.0im
 
 julia> f[3]
-Inf + Inf*im
+Inf + 0.0im
 
 julia> f[4]
 1.0 - 1.0im
@@ -85,17 +97,176 @@ julia> f[4]
 
 #### Under the hood
 
-The matrix representing a `LFT` object is held in a field named `:M`.
+The coefficients are four fields of the `LFT` object:
 
 ```
 julia> f = LFT(1,2,3)
-LFT( -1.0 + 0.0im , 1.0 + 0.0im , 1.0 + 0.0im , -3.0 + 0.0im )
 
-julia> f.M
-2x2 Array{Complex{Float64},2}:
- -1.0+0.0im   1.0+0.0im
-  1.0+0.0im  -3.0+0.0im
+julia> f.a, f.b, f.c, f.d
+(-1, 1, 1, -3)
+
+julia> Matrix(f)
+2×2 Matrix{Int64}:
+ -1   1
+  1  -3
 ```
+
+`f.M` returns that same matrix, for code written against earlier versions.
+
+## Operations
+
+### Function application
+
+Since a `LFT` is a function, the most basic operation we may wish to
+perform is applying that function to a point. That's done
+with  `f(x)`:
+
+```
+julia> f = LFT(3,2,1,1)
+LFT( 3 , 2 , 1 , 1 )
+
+julia> f(1)
+2.5
+
+julia> f(0)
+2.0
+
+julia> f(-1)
+Inf
+
+julia> f(Inf)
+3.0
+
+julia> f(1+2im)
+2.75 + 0.25im
+```
+
+Over a field without a nameable infinity, a pole returns `∞` instead of `Inf`; see
+[Other coefficient fields](#other-coefficient-fields).
+
+
+### Composition and inverse
+
+The `*` operation is used for function composition, and `∘` is its synonym.
+
+```
+julia> f = LFT(3,2,1,1);
+
+julia> g = LFT(0,1,-1,2);
+
+julia> f*g
+LFT( -2 , 7 , -1 , 3 )
+
+julia> g*f
+LFT( 1 , 1 , -1 , 0 )
+```
+
+
+The inverse of a `LFT` is computed with `inv`:
+
+```
+julia> f = LFT(1,2,3,4);
+
+julia> g = inv(f)
+LFT( 4 , -2 , -3 , 1 )
+
+julia> f*g
+LFT( -2 , 0 , 0 , -2 )
+```
+
+Notice that the matrix representing `f*g` is a scaled version of the
+identity matrix.
+
+### Identity, determinant and normalization
+
+`one(f)` is the identity of `f`'s coefficient type, `det(f)` is the determinant of the
+coefficient matrix, and `normalize(f)` is the same map with determinant 1.
+
+```
+julia> f = LFT(1,2,3);
+
+julia> one(f)
+LFT( 1 , 0 , 0 , 1 )
+
+julia> isone(one(f))
+true
+
+julia> det(f)
+2
+
+julia> normalize(LFT(4.0,0,0,1))
+LFT( 2.0 , 0.0 , 0.0 , 0.5 )
+
+julia> det(normalize(LFT(4.0,0,0,1)))
+1.0
+```
+
+`normalize` requires `sqrt` in the coefficient field.
+
+### Powers
+
+`f^k` is the `k`-fold composite of `f` with itself, computed by repeated squaring. A
+negative exponent uses the inverse, and `f^0` is `one(f)`.
+
+```
+julia> f = LFT(1,2,3);
+
+julia> f^3
+LFT( -6 , 14 , 14 , -34 )
+
+julia> f^3 == f*f*f
+true
+```
+
+### Scalar multiples
+
+Multiplying by a scalar scales every coefficient. The map is unchanged.
+
+```
+julia> f = LFT(1,2,3);
+
+julia> 2 * f
+LFT( -2 , 2 , 2 , -6 )
+
+julia> (2 * f) == f
+true
+```
+
+### Broadcasting
+
+`f` broadcasts over a collection of points, so `f.(points)` applies it elementwise.
+
+```
+julia> f = LFT(2,0,0,1);    # f(z) = 2z
+
+julia> f.([0, 1, 2])
+3-element Vector{Float64}:
+ 0.0
+ 2.0
+ 4.0
+```
+
+`eltype(f)` is the coefficient type, and `copy(f)` returns `f` unchanged.
+
+## Equality checking
+
+We can use `==` or `isequal` to check if two `LFT` objects are
+equal. Note that there is no unique matrix representation for a `LFT`
+object and we might have that `f` and `g` are equal, but `Matrix(f)` and
+`Matrix(g)` are different.
+
+```
+julia> f = LFT(1,2,3,4);
+
+julia> g = LFT(-2,-4,-6,-8);
+
+julia> f==g
+true
+
+julia> Matrix(f) == Matrix(g)
+false
+```
+
 
 ## Other coefficient fields
 
@@ -155,87 +326,6 @@ ERROR: Arguments must be finite: (∞, 0, 0, 1)
 If you work with a field type of your own that can name an infinity, extend
 `LinearFractionalTransformations.infinity` for one of its elements, and a pole
 returns that value instead of `∞`.
-
-## Operations
-
-### Function application
-
-Since a `LFT` is a function, the most basic operation we may wish to
-perform is applying that function of a complex number. That's done
-with  `f(x)`:
-
-```
-julia> f = LFT(3,2,1,1)
-LFT( 3.0 + 0.0im , 2.0 + 0.0im , 1.0 + 0.0im , 1.0 + 0.0im )
-
-julia> f(1)
-2.5 + 0.0im
-
-julia> f(0)
-2.0 + 0.0im
-
-julia> f(-1)
-Inf + Inf*im
-
-julia> f(Inf)
-3.0 + 0.0im
-
-julia> f(1+2im)
-2.75 + 0.25im
-```
-
-
-### Composition and inverse
-
-The `*` operation is used for function composition.
-
-```
-julia> f = LFT(3,2,1,1);
-
-julia> g = LFT(0,1,-1,2);
-
-julia> f*g
-LFT( -2.0 + 0.0im , 7.0 + 0.0im , -1.0 + 0.0im , 3.0 + 0.0im )
-
-julia> g*f
-LFT( 1.0 + 0.0im , 1.0 + 0.0im , -1.0 + 0.0im , 0.0 + 0.0im )
-```
-
-
-The inverse of a `LFT` is computed with `inv`:
-
-```
-julia> f = LFT(1,2,3,4);
-
-julia> g = inv(f)
-LFT( 4.0 + 0.0im , -2.0 - 0.0im , -3.0 - 0.0im , 1.0 + 0.0im )
-
-julia> f*g
-LFT( -2.0 + 0.0im , 0.0 + 0.0im , 0.0 + 0.0im , -2.0 + 0.0im )
-```
-
-Notice that the matrix representing `f*g` is a scaled version of the
-identity matrix.
-
-## Equality checking
-
-We can use `==` or `isequal` to check if two `LFT` objects are
-equal. Note that there is no unique matrix representation for a `LFT`
-object and we might have that `f` and `g` are equal, but `f.M` and
-`g.M` are different.
-
-```
-julia> f = LFT(1,2,3,4);
-
-julia> g = LFT(-2,-4,-6,-8);
-
-julia> f==g
-true
-
-julia> f.M == g.M
-false
-```
-
 
 ## Stereographic Projection and Linear Fractional Transformations
 
