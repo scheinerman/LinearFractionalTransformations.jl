@@ -2,7 +2,7 @@
 
 ## New in Version 0.3
 
-The coefficients may come from any field, not only `Complex{Float64}`. 
+The coefficients may come from any field, not just `Complex{Float64}`. 
 See *Other coefficient fields* below. 
 
 ## Overview
