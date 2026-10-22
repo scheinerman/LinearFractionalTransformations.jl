@@ -85,28 +85,20 @@ The transformation sending `a ↦ 0`, `b ↦ 1`, `c ↦ ∞`. Values of `Inf` or
 permitted.
 """
 function LFT(a, b, c)
-    if a == b || b == c || a == c
-        error("Three arguments must be distinct: " * string((a, b, c)))
+    if isequal(a, b) || isequal(b, c) || isequal(a, c)
+        throw(ArgumentError("Three arguments must be distinct: $((a, b, c))"))
     end
 
+    # Build 0 and 1 from a finite argument, so an exact field keeps its own type.
     if is_infinite_point(a)
-        return LFT(0, b - c, 1, -c)
+        return LFT(zero(b), b - c, one(b), -c)
+    elseif is_infinite_point(b)
+        return LFT(one(a), -a, one(a), -c)
+    elseif is_infinite_point(c)
+        return LFT(one(a), -a, zero(a), b - a)
     end
 
-    if is_infinite_point(b)
-        return LFT(1, -a, 1, -c)
-    end
-
-    if is_infinite_point(c)
-        return LFT(1, -a, 0, b - a)
-    end
-
-    # if all args are finite
-    aa = (b - c)
-    bb = (-a) * (b - c)
-    cc = (b - a)
-    dd = (-c) * (b - a)
-    return LFT(aa, bb, cc, dd)
+    return LFT(b - c, -a * (b - c), b - a, -c * (b - a))
 end
 
 """
