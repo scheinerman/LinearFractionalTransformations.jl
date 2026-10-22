@@ -3,6 +3,7 @@
 module LinearFractionalTransformations
 
 import Base: inv, show, hash, ==, *, isone, getindex
+import LinearAlgebra: det, normalize
 
 include("infinity.jl")
 
@@ -209,6 +210,24 @@ function Base.Matrix(m::LFT)
     (; a, b, c, d) = m
     return [a b; c d]
 end
+
+"""
+    det(m::LFT)
+
+The determinant `a*d - b*c` of the coefficient matrix.
+"""
+function det(m::LFT)
+    (; a, b, c, d) = m
+    return a * d - b * c
+end
+
+"""
+    normalize(m::LFT)
+
+Return a transformation equal to `m` whose coefficient matrix has determinant 1.
+Requires `sqrt` in the coefficient field.
+"""
+normalize(m::LFT) = m * inv(sqrt(det(m)))
 
 
 #### Evaluation ####
