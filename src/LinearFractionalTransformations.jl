@@ -59,11 +59,11 @@ The transformation whose coefficient matrix is `M = [a b; c d]`.
 LFT(M::AbstractArray) = LFT(M[1, 1], M[1, 2], M[2, 1], M[2, 2])
 
 """
-    LFT()
+    LFT(::Type{T}=Int)
 
-The identity, `LFT(1, 0, 0, 1)`.
+Return the identity LFT transformation of type `T`.
 """
-LFT() = LFT(1, 0, 0, 1)
+LFT(::Type{T}=Int) where T = LFT(one(T), zero(T), zero(T), one(T))
 
 """
     LFT(a => aa, b => bb, c => cc)
@@ -132,12 +132,32 @@ function isone(m::LFT)::Bool
 end
 
 """
+    one(m::LFT)
+
+The identity of `m`'s coefficient type, built from its coefficients, so that
+`one(m) * m == m`.
+"""
+function Base.one(m::LFT)
+    (; a, b, c, d) = m
+    return LFT(one(a), zero(b), zero(c), one(d))
+end
+
+"""
     ==(m::LFT, n::LFT)
 
 Return `true` if `m` and `n` are the same projective transformation, i.e. if
 `m * inv(n)` is the identity.
 """
 ==(m::LFT, n::LFT)::Bool = isone(m * inv(n))
+
+Base.eltype(::LFT{T}) where T = T
+
+"""
+    copy(m::LFT)
+
+Return `m`: the coefficients are immutable, so there is nothing to copy.
+"""
+Base.copy(m::LFT) = m
 
 """
     hash(m::LFT, h::UInt64 = UInt64(0))
