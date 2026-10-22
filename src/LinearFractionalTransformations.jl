@@ -202,6 +202,37 @@ function *(m::LFT, n::LFT)
 end
 
 """
+    *(λ, m::LFT)
+    *(m::LFT, λ)
+
+Scale every coefficient of `m` by `λ`. The map is unchanged.
+"""
+function *(λ, m::LFT)
+    (; a, b, c, d) = m
+    return LFT(λ * a, λ * b, λ * c, λ * d)
+end
+*(m::LFT, λ) = *(λ, m)
+
+Base.:∘(m::LFT, n::LFT) = m * n
+
+"""
+    m^k::LFT
+
+The `k`-fold composite of `m` with itself, by repeated squaring: `m^0` is `one(m)`,
+and a negative exponent falls to `inv(m)^(-k)`.
+"""
+function Base.:^(m::LFT, k::Integer)
+    k < 0 && return inv(m)^(-k)
+    p, square = one(m), m
+    while k > 0
+        isodd(k) && (p = p * square)
+        square = square * square
+        k >>= 1
+    end
+    return p
+end
+
+"""
     Matrix(m::LFT)
 
 The coefficient matrix `M = [a b; c d]`.
@@ -229,6 +260,14 @@ Requires `sqrt` in the coefficient field.
 """
 normalize(m::LFT) = m * inv(sqrt(det(m)))
 
+"""
+    broadcastable(m::LFT)
+
+Return `Ref(m)`, so that `m.(z)` broadcasts elementwise rather than treating `m` as a
+collection.
+"""
+Base.broadcastable(m::LFT) = Ref(m)
+
 
 #### Evaluation ####
 
@@ -247,6 +286,13 @@ function (m::LFT)(z)
     numer, denom = is_infinite_point(z) ? (a, c) : (a * z + b, c * z + d)
     return iszero(denom) ? infinity(denom) : numer * inv(denom)
 end
+
+"""
+    call(m::LFT, z)
+
+Apply `m` to `z`; the same as `m(z)`.
+"""
+call(m::LFT, z) = m(z)
 
 
 #### Display ####
