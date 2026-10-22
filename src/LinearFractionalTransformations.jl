@@ -143,6 +143,11 @@ Return `true` if `m` and `n` are the same projective transformation, i.e. if
 """
 ==(m::LFT, n::LFT)::Bool = isone(m * inv(n))
 
+"""
+    eltype(m::LFT)
+
+The coefficient type `T` of `m`.
+"""
 Base.eltype(::LFT{T}) where T = T
 
 """
@@ -205,6 +210,11 @@ function *(λ, m::LFT)
 end
 *(m::LFT, λ) = *(λ, m)
 
+"""
+    ∘(m::LFT, n::LFT)
+
+Compose two transformations; the same as `m * n`.
+"""
 Base.:∘(m::LFT, n::LFT) = m * n
 
 """
