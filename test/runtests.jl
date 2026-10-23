@@ -70,6 +70,40 @@ end
 end
 
 
+@testset "LFT as a function" begin
+    f = LFT(1, 2, 3, 4)
+    @test f isa Function
+    @test (f.a, f.b, f.c, f.d) == (1, 2, 3, 4)
+    @test eltype(f) == Int
+    @test copy(f) === f
+    @test call(f, 1) == f(1)
+
+    @test Matrix(f) == [1 2; 3 4]
+    @test f.M == [1 2; 3 4]
+    @test repr("text/plain", f) == "LFT( 1 , 2 , 3 , 4 )"   # REPL display, not the Function form
+    @test LFT(f.M) == f
+    @test det(f) == 1 * 4 - 2 * 3
+
+    g = normalize(LFT(4.0, 0.0, 0.0, 1.0))
+    @test g == LFT(4.0, 0.0, 0.0, 1.0)
+    @test det(g) == 1.0
+    @test g.a == 2.0 && g.d == 0.5
+
+    @test isone(one(f))
+    @test one(f) * f == f
+    @test f^0 == one(f)
+    @test f^5 == reduce(*, fill(f, 5))
+    @test f^-1 == inv(f)
+    @test inv(f) * f == one(f)
+
+    @test (f ∘ f) == f * f
+    @test 2 * f == f * 2
+    @test (2 * f)(1 + im) == f(1 + im)
+
+    @test f.([0, 1]) == [f(0), f(1)]
+end
+
+
 # A field element with no `isinf` — the shape of a Nemo number-field element.
 struct ToyExact
     x::Rational{Int}
