@@ -52,8 +52,8 @@ Base.:(==)(x::Number, ::RiemannInfinity) = (x == Inf)
 #
 # The other side is left unconstrained because fields that fall back to `∞` — a Nemo
 # number field, a user-defined one — are not `Number`s.
-Base.promote_typejoin(::Type{T}, ::Type{RiemannInfinity}) where {T} = Union{T, RiemannInfinity}
-Base.promote_typejoin(::Type{RiemannInfinity}, ::Type{T}) where {T} = Union{T, RiemannInfinity}
+Base.promote_typejoin(::Type{T}, ::Type{RiemannInfinity}) where {T} = Union{T,RiemannInfinity}
+Base.promote_typejoin(::Type{RiemannInfinity}, ::Type{T}) where {T} = Union{T,RiemannInfinity}
 # Those two are ambiguous on their common point; this resolves it, and keeps `[∞, ∞]`
 # a `Vector{RiemannInfinity}`.
 Base.promote_typejoin(::Type{RiemannInfinity}, ::Type{RiemannInfinity}) = RiemannInfinity
@@ -82,7 +82,7 @@ It takes an *element*, not a type: over an exact field only an element carries i
 parent ring, which is what an extension needs to name the field's own infinity. Extend
 it for a new field type with `infinity(x::MyElem) = infinity(parent(x))`.
 """
-infinity(x::T) where {T <: AbstractFloat} = oftype(x, Inf)
+infinity(x::T) where {T<:AbstractFloat} = oftype(x, Inf)
 infinity(x::Integer) = one(x) / zero(x)    # ℤ has no infinity, but ℤ's `/` lands in Float64
 infinity(x::Rational) = one(x) / zero(x)   # 1//0 — an infinity that stays a Rational
 infinity(x::Complex) = complex(infinity(real(x)))
