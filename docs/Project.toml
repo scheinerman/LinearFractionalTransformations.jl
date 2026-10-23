@@ -1,0 +1,6 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+LinearFractionalTransformations = "8bac944d-a3a1-5789-a62e-204935847c3c"
+
+[compat]
+Documenter = "1"
